@@ -1,0 +1,80 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+class Heap {
+private:
+    vector<int> data;  // Array-based heap
+    bool isMax;        // true = max heap, false = min heap
+
+    // Moves inserted value up to maintain heap property
+    void heapifyUp(int index) {
+        if (index == 0) return;
+
+        int parent = (index - 1) / 2;
+        if ((isMax && data[index] > data[parent]) || (!isMax && data[index] < data[parent])) {
+            swap(data[index], data[parent]);
+            heapifyUp(parent); // Recurse upwards
+        }
+    }
+
+public:
+    // Constructor to set heap type
+    Heap(bool maxHeap = true) : isMax(maxHeap) {}
+
+    // Insert a new value into the heap
+    void insert(int val) {
+        data.push_back(val);
+        heapifyUp(data.size() - 1);
+    }
+
+    // Get the top value (max or min depending on heap type)
+    int getTop() const {
+        if (data.empty()) {
+            cerr << "Heap is empty.\n";
+            return -1;
+        }
+        return data[0];
+    }
+
+    // Check if heap is empty
+    bool isEmpty() const {
+        return data.empty();
+    }
+
+    // Get the size of the heap
+    int size() const {
+        return data.size();
+    }
+};
+
+int main() {
+    int n;
+    cout << "Enter number of students: ";
+    cin >> n;
+
+    // Input validation
+    if (n <= 0) {
+        cerr << "Invalid number of students.\n";
+        return 1;
+    }
+
+    Heap maxHeap(true);   // Max-heap for highest mark
+    Heap minHeap(false);  // Min-heap for lowest mark
+
+    cout << "Enter marks of " << n << " students:\n";
+    for (int i = 0; i < n; ++i) {
+        int mark;
+        cin >> mark;
+        maxHeap.insert(mark);
+        minHeap.insert(mark);
+    }
+
+    // Output results
+    cout << "\nResults:\n";
+    cout << "Highest marks: " << maxHeap.getTop() << "\n";
+    cout << "Lowest marks : " << minHeap.getTop() << "\n";
+
+    return 0;
+}
+
