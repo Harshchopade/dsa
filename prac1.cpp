@@ -1,101 +1,107 @@
+//prac1
 #include <iostream>
-#include <vector>
-#include <list>
 using namespace std;
 
 const int TABLE_SIZE = 10;
+const int EMPTY = -1;
 
-struct Client {
-    int phone;
-    string name;
-};
+// Hash function
+int hashFunction(int key) {
+    return key % TABLE_SIZE;
+}
 
-/// --- Chaining --- ///
-class HashTableChaining {
-    vector<list<Client>> table;
-
-public:
-    HashTableChaining() {
-        table.resize(TABLE_SIZE);
+// Insert using Linear Probing
+void insertLinear(int table[], int key) {
+    int index = hashFunction(key);
+    int i = 0;
+    while (table[(index + i) % TABLE_SIZE] != EMPTY && i < TABLE_SIZE) {
+        i++;
     }
+    if (i < TABLE_SIZE)
+        table[(index + i) % TABLE_SIZE] = key;
+}
 
-    void insert(int phone, string name) {
-        int index = phone % TABLE_SIZE;
-        table[index].push_back({phone, name});
+// Insert using Quadratic Probing
+void insertQuadratic(int table[], int key) {
+    int index = hashFunction(key);
+    int i = 0;
+    while (table[(index + i * i) % TABLE_SIZE] != EMPTY && i < TABLE_SIZE) {
+        i++;
     }
+    if (i < TABLE_SIZE)
+        table[(index + i * i) % TABLE_SIZE] = key;
+}
 
-    int search(int phone) {
-        int index = phone % TABLE_SIZE;
-        int comparisons = 0;
-        for (auto& client : table[index]) {
-            comparisons++;
-            if (client.phone == phone)
-                break;
-        }
-        return comparisons;
+// Search using Linear Probing and count comparisons
+int searchLinear(int table[], int key, int &comparisons) {
+    int index = hashFunction(key);
+    int i = 0;
+    comparisons = 0;
+    while (table[(index + i) % TABLE_SIZE] != EMPTY && i < TABLE_SIZE) {
+        comparisons++;
+        if (table[(index + i) % TABLE_SIZE] == key)
+            return (index + i) % TABLE_SIZE;
+        i++;
     }
-};
+    return -1;
+}
 
-/// --- Linear Probing --- ///
-class HashTableLinear {
-    vector<Client> table;
-    vector<bool> occupied;
-
-public:
-    HashTableLinear() {
-        table.resize(TABLE_SIZE, {-1, ""});
-        occupied.resize(TABLE_SIZE, false);
+// Search using Quadratic Probing and count comparisons
+int searchQuadratic(int table[], int key, int &comparisons) {
+    int index = hashFunction(key);
+    int i = 0;
+    comparisons = 0;
+    while (table[(index + i * i) % TABLE_SIZE] != EMPTY && i < TABLE_SIZE) {
+        comparisons++;
+        if (table[(index + i * i) % TABLE_SIZE] == key)
+            return (index + i * i) % TABLE_SIZE;
+        i++;
     }
+    return -1;
+}
 
-    void insert(int phone, string name) {
-        int index = phone % TABLE_SIZE;
-        while (occupied[index]) {
-            index = (index + 1) % TABLE_SIZE;
-        }
-        table[index] = {phone, name};
-        occupied[index] = true;
+void printTable(int table[]) {
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        if (table[i] == EMPTY)
+            cout << i << ": " << "EMPTY" << endl;
+        else
+            cout << i << ": " << table[i] << endl;
     }
+}
 
-    int search(int phone) {
-        int index = phone % TABLE_SIZE;
-        int comparisons = 0;
-
-        while (occupied[index]) {
-            comparisons++;
-            if (table[index].phone == phone)
-                break;
-            index = (index + 1) % TABLE_SIZE;
-        }
-        return comparisons;
-    }
-};
-
-/// --- Main --- ///
 int main() {
-    vector<Client> clients = {
-        {105, "Alice"}, {215, "Bob"}, {325, "Charlie"}, {435, "David"},
-        {545, "Eva"}, {655, "Frank"}, {765, "Grace"}
-    };
-
-    HashTableChaining chainTable;
-    HashTableLinear linearTable;
-
-    // Insert
-    for (auto& c : clients) {
-        chainTable.insert(c.phone, c.name);
-        linearTable.insert(c.phone, c.name);
+    int linearTable[TABLE_SIZE], quadraticTable[TABLE_SIZE];
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        linearTable[i] = EMPTY;
+        quadraticTable[i] = EMPTY;
     }
+
+    // Sample data (telephone numbers or keys)
+    int data[] = {23, 43, 13, 27, 37};
+    int n = sizeof(data) / sizeof(data[0]);
+
+    // Insert into both tables
+    for (int i = 0; i < n; i++) {
+        insertLinear(linearTable, data[i]);
+        insertQuadratic(quadraticTable, data[i]);
+    }
+
+    // Print tables
+    cout << "Linear Probing Hash Table:\n";
+    printTable(linearTable);
+    cout << "\nQuadratic Probing Hash Table:\n";
+    printTable(quadraticTable);
 
     // Search and compare
-    cout << "Search Comparisons:\n";
-    for (auto& c : clients) {
-        int compChain = chainTable.search(c.phone);
-        int compLinear = linearTable.search(c.phone);
-
-        cout << c.name << " (" << c.phone << ") - Chaining: "
-             << compChain << ", Linear: " << compLinear << "\n";
+    cout << "\nSearch comparison:\n";
+    for (int i = 0; i < n; i++) {
+        int comparisonsLinear, comparisonsQuadratic;
+        searchLinear(linearTable, data[i], comparisonsLinear);
+        searchQuadratic(quadraticTable, data[i], comparisonsQuadratic);
+        cout << "Key: " << data[i]
+             << " | Linear Comparisons: " << comparisonsLinear
+             << " | Quadratic Comparisons: " << comparisonsQuadratic << endl;
     }
 
     return 0;
 }
-
