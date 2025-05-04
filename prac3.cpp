@@ -1,4 +1,5 @@
 #include <iostream>
+#include <queue>
 using namespace std;
 
 struct Node {
@@ -49,6 +50,7 @@ void mirrorTree(Node* root) {
     mirrorTree(root->right);
 }
 
+// Search for a value
 bool search(Node* root, int key) {
     if (root == nullptr)
         return false;
@@ -61,6 +63,49 @@ bool search(Node* root, int key) {
         return search(root->right, key);
 }
 
+// Delete a node
+Node* deleteNode(Node* root, int key) {
+    if (root == nullptr) return root;
+
+    // If the key to be deleted is smaller than the root's data
+    if (key < root->data)
+        root->left = deleteNode(root->left, key);
+    // If the key to be deleted is greater than the root's data
+    else if (key > root->data)
+        root->right = deleteNode(root->right, key);
+    // If the key is the same as the root's data
+    else {
+        // Node with only one child or no child
+        if (root->left == nullptr) {
+            Node* temp = root->right;
+            delete root;
+            return temp;
+        }
+        else if (root->right == nullptr) {
+            Node* temp = root->left;
+            delete root;
+            return temp;
+        }
+
+        // Node with two children: Get the inorder successor (smallest in the right subtree)
+        Node* temp = findMinNode(root->right);
+
+        // Copy the inorder successor's content to this node
+        root->data = temp->data;
+
+        // Delete the inorder successor
+        root->right = deleteNode(root->right, temp->data);
+    }
+    return root;
+}
+
+Node* findMinNode(Node* root) {
+    Node* current = root;
+    while (current && current->left != nullptr)
+        current = current->left;
+    return current;
+}
+
 // In-order traversal
 void inorder(Node* root) {
     if (!root) return;
@@ -68,17 +113,38 @@ void inorder(Node* root) {
     cout << root->data << " ";
     inorder(root->right);
 }
+
+// Pre-order traversal
 void preorder(Node* root) {
     if (!root) return;
     cout << root->data << " ";
     preorder(root->left);
     preorder(root->right);
 }
+
+// Post-order traversal
 void postorder(Node* root) {
     if (!root) return;
     postorder(root->left);
     postorder(root->right);
     cout << root->data << " ";
+}
+
+// BFS (Level-Order Traversal)
+void bfs(Node* root) {
+    if (root == nullptr) return;
+
+    queue<Node*> q;
+    q.push(root);
+
+    while (!q.empty()) {
+        Node* node = q.front();
+        cout << node->data << " ";
+        q.pop();
+
+        if (node->left) q.push(node->left);
+        if (node->right) q.push(node->right);
+    }
 }
 
 int main() {
@@ -93,13 +159,15 @@ int main() {
     cout << "In-order traversal of original BST: ";
     inorder(root);
     cout << endl;
-    cout << "preorderr traversal of original BST: ";
+
+    cout << "Pre-order traversal of original BST: ";
     preorder(root);
     cout << endl;
-// 
-    cout << "postordertraversal of original BST: ";
+
+    cout << "Post-order traversal of original BST: ";
     postorder(root);
     cout << endl;
+
     // Step 2: Insert a new node
     cout << "\nInserting 25 into the BST...\n";
     root = insert(root, 25);
@@ -114,21 +182,30 @@ int main() {
     // Step 4: Minimum value
     cout << "Minimum value in the BST: " << findMin(root) << endl;
 
+    // Step 5: Search for a value
+    int key = 40;
+    if (search(root, key))
+        cout << "Found\n";
+    else
+        cout << "Not Found\n";
 
-	    // Step 6: Search for a value
-int key = 40;
-if (search(root, key))
-    cout << "Found\n";
-else
-    cout << "Not Found\n";
+    // Step 6: Delete a node
+    cout << "\nDeleting node with value 40...\n";
+    root = deleteNode(root, 40);
+    cout << "In-order after deletion: ";
+    inorder(root);
+    cout << endl;
 
-    // Step 5: Mirror the tree
+    // Step 7: Perform BFS (Breadth-First Search)
+    cout << "\nBFS (Level-Order Traversal): ";
+    bfs(root);
+    cout << endl;
+
+    // Step 8: Mirror the tree
     mirrorTree(root);
     cout << "\nIn-order traversal after mirroring: ";
     inorder(root);
     cout << endl;
-
-
 
     return 0;
 }
